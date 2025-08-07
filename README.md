@@ -61,12 +61,27 @@ This is the most critical step. You need to generate an access token that grants
 10. Click the **"Extend Access Token"** button at the bottom. This will generate a new, long-lived token (valid for about 60 days).
 11. **This is your final access token.** Copy this new, long-lived token into the `my_access_token` field in your `config.ini` file.
 
-## 3. Usage
+## 3. Usage (Web Application)
 
-Once your `config.ini` is set up, you can run the application:
+The primary way to use this tool is through the web interface.
 
-```bash
-python main.py
-```
+1.  **Run the web server from your terminal:**
+    ```bash
+    python app.py
+    ```
+    You should see output indicating that the server is running.
 
-Follow the on-screen prompts to create your campaign.
+2.  **Open your web browser:**
+    Navigate to the following URL: `http://127.0.0.1:8080`
+
+3.  **Fill out the form** with your campaign details and click "Create Campaign". The result will be displayed on the next page.
+
+## 4. Usage (Command-Line Interface)
+
+For users who prefer the command line, the original CLI tool is still available.
+
+1.  **Run the CLI script:**
+    ```bash
+    python cli.py
+    ```
+2.  **Follow the prompts** in your terminal to create the campaign.
