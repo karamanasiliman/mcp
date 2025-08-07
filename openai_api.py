@@ -105,7 +105,12 @@ AVAILABLE FUNCTIONS:
 ---
 TARGETING SPECIFICATION:
 The `targeting_spec` is a dictionary with the following keys:
-- `geo_locations`: A dictionary with a `countries` key. Value is a list of 2-letter country codes (e.g., `{'countries': ['US', 'CA']}`).
+- `geo_locations`: A dictionary that specifies locations. It can contain one or more of the following keys:
+    - `countries`: A list of 2-letter country codes. (e.g., `['US', 'CA']`)
+    - `regions`: A list of region objects. (e.g., `[{'key': '3847'}]` for California)
+    - `cities`: A list of city objects. (e.g., `[{'key': '2430536', 'radius': 10, 'distance_unit': 'mile'}]` for Menlo Park)
+    - `zips`: A list of zip code objects. (e.g., `[{'key': 'US:94304'}]`)
+    - `country_groups`: A list of country group codes. (e.g., `['europe']`)
 - `age_min`: An integer for the minimum age.
 - `age_max`: An integer for the maximum age.
 - `genders`: A list containing integers: `[1]` for male, `[2]` for female.
