@@ -104,8 +104,8 @@
             <button type="submit" id="send-button">Send</button>
         </form>
         <form id="upload-form" style="display: none; padding: 10px;">
-            <input type="file" id="file-input" name="file" accept="image/*">
-            <button type="submit">Upload Image</button>
+            <input type="file" id="file-input" name="file" accept="image/*,video/*">
+            <button type="submit">Upload File</button>
         </form>
     </div>
 
@@ -135,7 +135,7 @@
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
 
-            addMessage('Uploading image...', 'ai');
+            addMessage('Uploading file...', 'ai');
             try {
                 const response = await fetch('/upload', {
                     method: 'POST',
@@ -146,9 +146,10 @@
                     throw new Error(result.error);
                 }
 
-                const imageHash = result.payload;
-                const messageToAi = `(User has uploaded an image. The hash is: ${imageHash})`;
-                addMessage(`Image uploaded successfully. Informing the AI...`, 'ai');
+                const id_type = result.payload.id_type;
+                const id_value = result.payload.id_value;
+                const messageToAi = `(User has uploaded a file. The ${id_type} is: ${id_value})`;
+                addMessage(`File uploaded successfully. Informing the AI...`, 'ai');
                 hideUploadForm();
 
                 // Automatically send this information back to the AI
@@ -298,7 +299,9 @@
                 if (aiResponse.type === 'message') {
                     const responseText = aiResponse.payload;
                     addMessage(responseText, 'ai');
-                    if (responseText.includes("Please upload an image")) {
+                    // Check for either image or video upload request
+                    if (responseText.includes("(Please upload an image)") || responseText.includes("(Please upload a video)")) {
+                    if (responseText.includes("(Please upload an image)") || responseText.includes("(Please upload a video)")) {
                         showUploadForm();
                     }
                 } else if (aiResponse.type === 'confirmation') {

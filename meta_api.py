@@ -8,6 +8,7 @@ from facebook_business.adobjects.adset import AdSet
 from facebook_business.adobjects.adcreative import AdCreative
 from facebook_business.adobjects.customaudience import CustomAudience
 from facebook_business.adobjects.adimage import AdImage
+from facebook_business.adobjects.advideo import AdVideo
 from facebook_business.adobjects.page import Page
 from facebook_business.adobjects.ad import Ad
 from facebook_business.exceptions import FacebookRequestError
@@ -192,6 +193,26 @@ def upload_image(ad_account, image_path):
         print(f"Error uploading image: {e}")
         return None
 
+def upload_video(ad_account, video_path):
+    """
+    Uploads a video to the ad account's library and returns the video ID.
+    """
+    try:
+        video = ad_account.create_ad_video(
+            params={
+                AdVideo.Field.filepath: video_path,
+            }
+        )
+        video.remote_read(fields=[AdVideo.Field.id, AdVideo.Field.status])
+        # Wait for the video to be processed
+        video.waitUntilEncodingReady()
+        video_id = video[AdVideo.Field.id]
+        print(f"Successfully uploaded and processed video. ID: {video_id}")
+        return video_id
+    except FacebookRequestError as e:
+        print(f"Error uploading video: {e}")
+        return None
+
 def create_lead_form(page_id, name, questions):
     """
     Creates a new Lead Generation Form for a given Page.
@@ -247,6 +268,36 @@ def create_lead_ad_creative(ad_account, name, page_id, message, image_hash, lead
         print(f"Error creating lead ad creative: {e}")
         return None
 
+def create_video_ad_creative(ad_account, name, page_id, message, video_id, thumbnail_url=None):
+    """
+    Creates a new video ad creative.
+    """
+    try:
+        video_data = {
+            'video_id': video_id,
+            'message': message,
+            'title': name, # Use the creative name as the title
+            'call_to_action': {'type': 'WATCH_MORE'}, # A generic CTA
+        }
+        if thumbnail_url:
+            video_data['image_url'] = thumbnail_url
+
+        object_story_spec = {
+            'page_id': page_id,
+            'video_data': video_data,
+        }
+        params = {
+            'name': name,
+            'object_story_spec': object_story_spec,
+        }
+        creative = ad_account.create_ad_creative(params=params)
+        print(f"Successfully created video ad creative '{name}'")
+        print(f"  - Ad Creative ID: {creative[AdCreative.Field.id]}")
+        return creative
+    except FacebookRequestError as e:
+        print(f"Error creating video ad creative: {e}")
+        return None
+
 def create_ad(ad_account, ad_set_id, creative_id, name):
     """
     Creates a new ad, linking an ad set and a creative.
@@ -298,23 +349,18 @@ def create_ad_creative(ad_account, page_id, name, image_hash, link, message):
         print(f"  - Error Message: {e.api_error_message()}")
         return None
 
-def create_ad_set(ad_account, campaign_id, name, daily_budget_cents, start_time, optimization_goal, end_time=None):
+def create_ad_set(ad_account, campaign_id, name, daily_budget_cents, start_time, optimization_goal, targeting_spec, end_time=None):
     """
     Creates a new ad set in a campaign.
     https://developers.facebook.com/docs/marketing-api/reference/ad-campaign/
     """
     try:
-        # A basic targeting spec. This can be greatly expanded.
-        targeting = {
-            'geo_locations': {'countries': ['US']},
-        }
-
         params = {
             'name': name,
             'campaign_id': campaign_id,
             'daily_budget': daily_budget_cents,
             'start_time': start_time.isoformat(),
-            'targeting': targeting,
+            'targeting': targeting_spec,
             'optimization_goal': optimization_goal,
             'billing_event': AdSet.BillingEvent.impressions,
             'status': AdSet.Status.paused,

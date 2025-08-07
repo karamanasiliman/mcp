@@ -175,6 +175,14 @@ def execute():
             else:
                 result_message = "Failed to create lead ad creative."
 
+        elif func_name == "create_video_ad_creative":
+            params['page_id'] = config['META_API']['page_id']
+            creative = meta_api.create_video_ad_creative(ad_account=ad_account, **params)
+            if creative:
+                result_message = f"Successfully created video ad creative. ID: {creative['id']}"
+            else:
+                result_message = "Failed to create video ad creative."
+
         else:
             result_message = f"Error: Unknown function '{func_name}'."
 
@@ -206,16 +214,26 @@ def upload_file():
             ad_account_id = config['META_API']['ad_account_id']
             ad_account = AdAccount(ad_account_id)
 
-            # Upload image and get hash
-            image_hash = meta_api.upload_image(ad_account, filepath)
+            # Upload file and get hash/id
+            if 'image' in file.content_type:
+                upload_function = meta_api.upload_image
+                response_type = 'image_hash'
+            elif 'video' in file.content_type:
+                upload_function = meta_api.upload_video
+                response_type = 'video_id'
+            else:
+                os.remove(filepath)
+                return jsonify({"error": "Unsupported file type. Please upload an image or video."}), 400
+
+            result_id = upload_function(ad_account, filepath)
 
             # Clean up the uploaded file
             os.remove(filepath)
 
-            if image_hash:
-                return jsonify({"type": "image_hash", "payload": image_hash})
+            if result_id:
+                return jsonify({"type": "file_upload_success", "payload": {"id_type": response_type, "id_value": result_id}})
             else:
-                return jsonify({"error": "Failed to upload image to Meta."}), 500
+                return jsonify({"error": f"Failed to upload {file.content_type} to Meta."}), 500
 
         except Exception as e:
             # Clean up the file in case of an error
