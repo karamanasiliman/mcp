@@ -103,12 +103,17 @@
             <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off">
             <button type="submit" id="send-button">Send</button>
         </form>
+        <form id="upload-form" style="display: none; padding: 10px;">
+            <input type="file" id="file-input" name="file" accept="image/*">
+            <button type="submit">Upload Image</button>
+        </form>
     </div>
 
     <script>
         const chatWindow = document.getElementById('chat-window');
         const chatForm = document.getElementById('chat-form');
         const messageInput = document.getElementById('message-input');
+        const uploadForm = document.getElementById('upload-form');
 
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -117,33 +122,42 @@
 
             addMessage(userMessage, 'user');
             messageInput.value = '';
+            await sendChatMessage(userMessage);
+        });
 
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById('file-input');
+            if (fileInput.files.length === 0) {
+                addMessage('Please select a file to upload.', 'ai');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            addMessage('Uploading image...', 'ai');
             try {
-                const response = await fetch('/chat', {
+                const response = await fetch('/upload', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ message: userMessage }),
+                    body: formData,
                 });
-                const aiResponseJson = await response.json();
-                const aiResponse = aiResponseJson;
-
-                if (aiResponse.type === 'message') {
-                    addMessage(aiResponse.payload, 'ai');
-                } else if (aiResponse.type === 'confirmation') {
-                    addConfirmationMessage(aiResponse.payload);
-                } else if (aiResponse.type === 'list') {
-                    addMessage("Here are the campaigns I found:", 'ai');
-                    addTable(aiResponse.payload);
-                } else if (aiResponse.type === 'insights') {
-                    addMessage("Here are the performance insights:", 'ai');
-                    addInsights(aiResponse.payload);
+                const result = await response.json();
+                if (result.error) {
+                    throw new Error(result.error);
                 }
 
+                const imageHash = result.payload;
+                const messageToAi = `(User has uploaded an image. The hash is: ${imageHash})`;
+                addMessage(`Image uploaded successfully. Informing the AI...`, 'ai');
+                hideUploadForm();
+
+                // Automatically send this information back to the AI
+                await sendChatMessage(messageToAi);
+
             } catch (error) {
-                console.error('Error:', error);
-                addMessage('Sorry, something went wrong. Please check the console.', 'ai');
+                console.error('Upload Error:', error);
+                addMessage(`Upload failed: ${error.message}`, 'ai');
+                hideUploadForm();
             }
         });
 
@@ -268,6 +282,48 @@
             // Re-enable main input
             messageInput.disabled = false;
             document.getElementById('send-button').disabled = false;
+            messageInput.focus();
+        }
+
+        async function sendChatMessage(messageText) {
+            // Refactored chat logic into its own function
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: messageText }),
+                });
+                const aiResponse = await response.json();
+
+                if (aiResponse.type === 'message') {
+                    const responseText = aiResponse.payload;
+                    addMessage(responseText, 'ai');
+                    if (responseText.includes("Please upload an image")) {
+                        showUploadForm();
+                    }
+                } else if (aiResponse.type === 'confirmation') {
+                    addConfirmationMessage(aiResponse.payload);
+                } else if (aiResponse.type === 'list') {
+                    addMessage("Here are the campaigns I found:", 'ai');
+                    addTable(aiResponse.payload);
+                } else if (aiResponse.type === 'insights') {
+                    addMessage("Here are the performance insights:", 'ai');
+                    addInsights(aiResponse.payload);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('Sorry, something went wrong. Please check the console.', 'ai');
+            }
+        }
+
+        function showUploadForm() {
+            uploadForm.style.display = 'flex';
+            chatForm.style.display = 'none';
+        }
+
+        function hideUploadForm() {
+            uploadForm.style.display = 'none';
+            chatForm.style.display = 'flex';
             messageInput.focus();
         }
     </script>

@@ -3,10 +3,14 @@ from facebook_business.adobjects.adaccount import AdAccount
 import meta_api
 import openai_api
 import os
+import json
+from datetime import datetime
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 # A secret key is required for Flask session management
 app.secret_key = os.urandom(24)
+app.config['UPLOAD_FOLDER'] = 'uploads'
 
 @app.route('/')
 def index():
@@ -166,3 +170,39 @@ def execute():
 
     except Exception as e:
         return jsonify({"type": "message", "payload": f"An unexpected error occurred during execution: {e}"})
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+    if file:
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        try:
+            # Initialize API and get ad account
+            meta_api.initialize_api()
+            config = meta_api.get_config()
+            ad_account_id = config['META_API']['ad_account_id']
+            ad_account = AdAccount(ad_account_id)
+
+            # Upload image and get hash
+            image_hash = meta_api.upload_image(ad_account, filepath)
+
+            # Clean up the uploaded file
+            os.remove(filepath)
+
+            if image_hash:
+                return jsonify({"type": "image_hash", "payload": image_hash})
+            else:
+                return jsonify({"error": "Failed to upload image to Meta."}), 500
+
+        except Exception as e:
+            # Clean up the file in case of an error
+            if os.path.exists(filepath):
+                os.remove(filepath)
+            return jsonify({"error": str(e)}), 500

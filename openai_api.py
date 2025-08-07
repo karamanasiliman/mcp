@@ -36,10 +36,11 @@ AVAILABLE FUNCTIONS:
 
 3. create_ad_creative(name: str, page_id: str, image_hash: str, link: str, message: str)
     - Description: Creates the ad creative (the visual part of the ad).
+    - IMPORTANT: To get the `image_hash`, you must first ask the user to upload an image. Do this by including the exact phrase "(Please upload an image)" in your message. The user will then upload a file, and you will receive a new message with the hash.
     - Parameters:
         - name: A name for the creative.
         - page_id: The ID of the Facebook Page for the ad.
-        - image_hash: The hash of a previously uploaded image.
+        - image_hash: The hash of a previously uploaded image. Do not ask for this directly.
         - link: The destination URL.
         - message: The primary text of the ad.
 

@@ -6,6 +6,7 @@ from facebook_business.adobjects.campaign import Campaign
 from facebook_business.adobjects.adset import AdSet
 from facebook_business.adobjects.adcreative import AdCreative
 from facebook_business.adobjects.customaudience import CustomAudience
+from facebook_business.adobjects.adimage import AdImage
 from facebook_business.adobjects.ad import Ad
 from facebook_business.exceptions import FacebookRequestError
 
@@ -171,6 +172,22 @@ def create_custom_audience_from_emails(ad_account, name, description, user_email
 
     except FacebookRequestError as e:
         print(f"Error creating custom audience: {e}")
+        return None
+
+def upload_image(ad_account, image_path):
+    """
+    Uploads an image to the ad account's library and returns the image hash.
+    """
+    try:
+        params = {
+            AdImage.Field.filename: image_path,
+        }
+        image = ad_account.create_ad_image(params=params)
+        image_hash = image[AdImage.Field.hash]
+        print(f"Successfully uploaded image. Hash: {image_hash}")
+        return image_hash
+    except FacebookRequestError as e:
+        print(f"Error uploading image: {e}")
         return None
 
 def create_ad(ad_account, ad_set_id, creative_id, name):

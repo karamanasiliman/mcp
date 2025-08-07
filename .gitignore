@@ -22,3 +22,6 @@ dist/
 # IDE files
 .idea/
 .vscode/
+
+# Uploads
+uploads/
