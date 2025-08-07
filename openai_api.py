@@ -117,6 +117,8 @@ The `targeting_spec` is a dictionary with the following keys:
 - `genders`: A list containing integers: `[1]` for male, `[2]` for female.
 - `relationship_statuses`: A list of integers (e.g., `[1]` for Single, `[2]` for In a Relationship, `[3]` for Married).
 - `life_events`: A list of dictionaries for life events (e.g., `[{'id': '6002714483572', 'name': 'Newlywed'}]`).
+- `publisher_platforms`: A list of strings. Valid values: `['facebook', 'instagram', 'audience_network', 'messenger']`.
+- `facebook_positions`: A list of strings. Valid values: `['feed', 'story', 'reels', 'in-stream']`.
 - `flexible_spec`: A list of dictionaries for interest and behavior targeting. Example: `[{'interests': [{'id': '6003139266461', 'name': 'Movies'}], 'behaviors': [{'id': '6002714534972', 'name': 'Engaged Shoppers'}]}]`. You must find the ID for an interest/behavior before using it. For now, just ask the user for the names and construct the object.
 
 ---
