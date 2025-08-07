@@ -159,6 +159,22 @@ def execute():
             else:
                 result_message = "Failed to create custom audience."
 
+        elif func_name == "create_lead_form":
+            params['page_id'] = config['META_API']['page_id']
+            form_id = meta_api.create_lead_form(**params)
+            if form_id:
+                result_message = f"Successfully created new lead form. ID: {form_id}"
+            else:
+                result_message = "Failed to create lead form."
+
+        elif func_name == "create_lead_ad_creative":
+            params['page_id'] = config['META_API']['page_id']
+            creative = meta_api.create_lead_ad_creative(ad_account=ad_account, **params)
+            if creative:
+                result_message = f"Successfully created lead ad creative. ID: {creative['id']}"
+            else:
+                result_message = "Failed to create lead ad creative."
+
         else:
             result_message = f"Error: Unknown function '{func_name}'."
 

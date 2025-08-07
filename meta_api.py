@@ -1,12 +1,14 @@
 import configparser
 from facebook_business.api import FacebookAdsApi
 import hashlib
+import json
 from facebook_business.adobjects.adaccount import AdAccount
 from facebook_business.adobjects.campaign import Campaign
 from facebook_business.adobjects.adset import AdSet
 from facebook_business.adobjects.adcreative import AdCreative
 from facebook_business.adobjects.customaudience import CustomAudience
 from facebook_business.adobjects.adimage import AdImage
+from facebook_business.adobjects.page import Page
 from facebook_business.adobjects.ad import Ad
 from facebook_business.exceptions import FacebookRequestError
 
@@ -190,6 +192,61 @@ def upload_image(ad_account, image_path):
         print(f"Error uploading image: {e}")
         return None
 
+def create_lead_form(page_id, name, questions):
+    """
+    Creates a new Lead Generation Form for a given Page.
+    https://developers.facebook.com/docs/marketing-api/guides/lead-ads/forms-questions
+    """
+    try:
+        page = Page(page_id)
+        params = {
+            'name': name,
+            'questions': json.dumps(questions), # Questions need to be a JSON string
+            'privacy_policy': {
+                'url': 'https://www.facebook.com/privacy/policy', # A placeholder privacy policy is required
+                'link_text': 'Privacy Policy'
+            }
+        }
+        form = page.create_lead_gen_form(params=params)
+        form_id = form[Page.Field.id]
+        print(f"Successfully created lead form '{name}' with ID: {form_id}")
+        return form_id
+    except FacebookRequestError as e:
+        print(f"Error creating lead form: {e}")
+        return None
+
+def create_lead_ad_creative(ad_account, name, page_id, message, image_hash, lead_gen_form_id):
+    """
+    Creates a special ad creative for a Lead Ad.
+    """
+    try:
+        link_data = {
+            'link': 'http://fb.me/', # Required for lead ads
+            'message': message,
+            'image_hash': image_hash,
+            'call_to_action': {
+                'type': 'SIGN_UP',
+                'value': {
+                    'lead_gen_form_id': lead_gen_form_id,
+                }
+            }
+        }
+        object_story_spec = {
+            'page_id': page_id,
+            'link_data': link_data,
+        }
+        params = {
+            'name': name,
+            'object_story_spec': object_story_spec,
+        }
+        creative = ad_account.create_ad_creative(params=params)
+        print(f"Successfully created lead ad creative '{name}'")
+        print(f"  - Ad Creative ID: {creative[AdCreative.Field.id]}")
+        return creative
+    except FacebookRequestError as e:
+        print(f"Error creating lead ad creative: {e}")
+        return None
+
 def create_ad(ad_account, ad_set_id, creative_id, name):
     """
     Creates a new ad, linking an ad set and a creative.
@@ -241,7 +298,7 @@ def create_ad_creative(ad_account, page_id, name, image_hash, link, message):
         print(f"  - Error Message: {e.api_error_message()}")
         return None
 
-def create_ad_set(ad_account, campaign_id, name, daily_budget_cents, start_time, end_time=None):
+def create_ad_set(ad_account, campaign_id, name, daily_budget_cents, start_time, optimization_goal, end_time=None):
     """
     Creates a new ad set in a campaign.
     https://developers.facebook.com/docs/marketing-api/reference/ad-campaign/
@@ -258,10 +315,18 @@ def create_ad_set(ad_account, campaign_id, name, daily_budget_cents, start_time,
             'daily_budget': daily_budget_cents,
             'start_time': start_time.isoformat(),
             'targeting': targeting,
-            'optimization_goal': AdSet.OptimizationGoal.reach,
+            'optimization_goal': optimization_goal,
             'billing_event': AdSet.BillingEvent.impressions,
             'status': AdSet.Status.paused,
         }
+
+        # Special parameters for Lead Ads
+        if optimization_goal == 'LEAD_GENERATION':
+            config = get_config()
+            params['promoted_object'] = {'page_id': config['META_API']['page_id']}
+            params['destination_type'] = 'ON_AD'
+
+
         if end_time:
             params['end_time'] = end_time.isoformat()
 
