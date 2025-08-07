@@ -119,6 +119,7 @@ The `targeting_spec` is a dictionary with the following keys:
 - `life_events`: A list of dictionaries for life events (e.g., `[{'id': '6002714483572', 'name': 'Newlywed'}]`).
 - `publisher_platforms`: A list of strings. Valid values: `['facebook', 'instagram', 'audience_network', 'messenger']`.
 - `facebook_positions`: A list of strings. Valid values: `['feed', 'story', 'reels', 'in-stream']`.
+- `targeting_optimization`: A string to enable Advantage detailed targeting. Set to 'expansion' to enable.
 - `flexible_spec`: A list of dictionaries for interest and behavior targeting. Example: `[{'interests': [{'id': '6003139266461', 'name': 'Movies'}], 'behaviors': [{'id': '6002714534972', 'name': 'Engaged Shoppers'}]}]`. You must find the ID for an interest/behavior before using it. For now, just ask the user for the names and construct the object.
 
 ---
