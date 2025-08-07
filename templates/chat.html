@@ -232,6 +232,14 @@
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
+        function addPreview(iframeString) {
+            const previewContainer = document.createElement('div');
+            previewContainer.classList.add('message', 'ai-message');
+            previewContainer.innerHTML = iframeString; // Directly render the iframe
+            chatWindow.appendChild(previewContainer);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
         function addInsights(data) {
             const table = document.createElement('table');
             const tbody = document.createElement('tbody');
@@ -270,6 +278,9 @@
                 } else if (result.type === 'insights') {
                     addMessage("Here are the performance insights:", 'ai');
                     addInsights(result.payload);
+                } else if (result.type === 'preview') {
+                    addMessage("Here is the ad preview:", 'ai');
+                    addPreview(result.payload);
                 } else {
                     addMessage(result.payload, 'ai');
                 }
@@ -301,7 +312,6 @@
                     addMessage(responseText, 'ai');
                     // Check for either image or video upload request
                     if (responseText.includes("(Please upload an image)") || responseText.includes("(Please upload a video)")) {
-                    if (responseText.includes("(Please upload an image)") || responseText.includes("(Please upload a video)")) {
                         showUploadForm();
                     }
                 } else if (aiResponse.type === 'confirmation') {
@@ -312,6 +322,9 @@
                 } else if (aiResponse.type === 'insights') {
                     addMessage("Here are the performance insights:", 'ai');
                     addInsights(aiResponse.payload);
+                } else if (aiResponse.type === 'preview') {
+                    addMessage("Here is the ad preview:", 'ai');
+                    addPreview(aiResponse.payload);
                 }
             } catch (error) {
                 console.error('Error:', error);

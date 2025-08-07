@@ -10,6 +10,7 @@ from facebook_business.adobjects.customaudience import CustomAudience
 from facebook_business.adobjects.adimage import AdImage
 from facebook_business.adobjects.advideo import AdVideo
 from facebook_business.adobjects.page import Page
+from facebook_business.adobjects.adpreview import AdPreview
 from facebook_business.adobjects.ad import Ad
 from facebook_business.exceptions import FacebookRequestError
 
@@ -303,6 +304,54 @@ def create_video_ad_creative(ad_account, name, page_id, message, video_id, thumb
         print(f"Error creating video ad creative: {e}")
         return None
 
+def create_dynamic_creative(ad_account, name, page_id, image_hashes=None, titles=None, bodies=None, link_urls=None):
+    """
+    Creates a new dynamic ad creative using an asset feed.
+    """
+    try:
+        asset_feed_spec = {}
+        if image_hashes:
+            asset_feed_spec['images'] = [{'hash': h} for h in image_hashes]
+        if titles:
+            asset_feed_spec['titles'] = [{'text': t} for t in titles]
+        if bodies:
+            asset_feed_spec['bodies'] = [{'text': b} for b in bodies]
+        if link_urls:
+             asset_feed_spec['link_urls'] = [{'website_url': url} for url in link_urls]
+
+        params = {
+            'name': name,
+            'object_story_spec': {'page_id': page_id},
+            'asset_feed_spec': json.dumps(asset_feed_spec),
+        }
+        creative = ad_account.create_ad_creative(params=params)
+        print(f"Successfully created dynamic creative '{name}'")
+        print(f"  - Ad Creative ID: {creative[AdCreative.Field.id]}")
+        return creative
+
+    except FacebookRequestError as e:
+        print(f"Error creating dynamic creative: {e}")
+        return None
+
+def get_ad_preview(creative_id, ad_format='DESKTOP_FEED_STANDARD'):
+    """
+    Fetches an HTML preview for a given ad creative.
+    """
+    try:
+        creative = AdCreative(creative_id)
+        params = {'ad_format': ad_format}
+        previews = creative.get_previews(params=params)
+
+        if previews:
+            # The response is a list, get the first item's body
+            return previews[0][AdPreview.Field.body]
+        else:
+            return "Could not generate a preview for this format."
+
+    except FacebookRequestError as e:
+        print(f"Error getting ad preview for creative {creative_id}: {e}")
+        return f"Error generating preview: {e.api_error_message()}"
+
 def create_ad(ad_account, ad_set_id, creative_id, name):
     """
     Creates a new ad, linking an ad set and a creative.
@@ -354,7 +403,7 @@ def create_ad_creative(ad_account, page_id, name, image_hash, link, message):
         print(f"  - Error Message: {e.api_error_message()}")
         return None
 
-def create_ad_set(ad_account, campaign_id, name, daily_budget_cents, start_time, optimization_goal, targeting_spec, end_time=None):
+def create_ad_set(ad_account, campaign_id, name, daily_budget_cents, start_time, optimization_goal, targeting_spec, end_time=None, is_dynamic_creative=False):
     """
     Creates a new ad set in a campaign.
     https://developers.facebook.com/docs/marketing-api/reference/ad-campaign/
@@ -370,6 +419,9 @@ def create_ad_set(ad_account, campaign_id, name, daily_budget_cents, start_time,
             'billing_event': AdSet.BillingEvent.impressions,
             'status': AdSet.Status.paused,
         }
+
+        if is_dynamic_creative:
+            params['is_dynamic_creative'] = True
 
         # Special parameters for Lead Ads
         if optimization_goal == 'LEAD_GENERATION':

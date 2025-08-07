@@ -183,6 +183,21 @@ def execute():
             else:
                 result_message = "Failed to create video ad creative."
 
+        elif func_name == "create_dynamic_creative":
+            params['page_id'] = config['META_API']['page_id']
+            creative = meta_api.create_dynamic_creative(ad_account=ad_account, **params)
+            if creative:
+                result_message = f"Successfully created dynamic creative. ID: {creative['id']}"
+            else:
+                result_message = "Failed to create dynamic creative."
+
+        elif func_name == "get_ad_preview":
+            preview_iframe = meta_api.get_ad_preview(**params)
+            if "Error" in preview_iframe:
+                 result_message = preview_iframe
+            else:
+                return jsonify({"type": "preview", "payload": preview_iframe})
+
         else:
             result_message = f"Error: Unknown function '{func_name}'."
 
