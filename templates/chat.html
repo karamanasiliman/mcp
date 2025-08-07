@@ -34,8 +34,9 @@
             margin-bottom: 15px;
             padding: 10px 15px;
             border-radius: 18px;
-            max-width: 70%;
+            max-width: 90%; /* Allow wider for tables */
             line-height: 1.4;
+            word-wrap: break-word;
         }
         .user-message {
             background-color: #0084ff;
@@ -68,6 +69,26 @@
             margin-left: 10px;
             cursor: pointer;
             font-size: 16px;
+        }
+        .confirmation-buttons button {
+            padding: 8px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #dddfe2;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f0f2f5;
         }
     </style>
 </head>
@@ -112,6 +133,9 @@
                     addMessage(aiResponse.payload, 'ai');
                 } else if (aiResponse.type === 'confirmation') {
                     addConfirmationMessage(aiResponse.payload);
+                } else if (aiResponse.type === 'list') {
+                    addMessage("Here are the campaigns I found:", 'ai');
+                    addTable(aiResponse.payload);
                 }
 
             } catch (error) {
@@ -153,6 +177,43 @@
             document.getElementById('send-button').disabled = true;
         }
 
+        function addTable(data) {
+            if (!Array.isArray(data) || data.length === 0) {
+                addMessage("No items to display.", 'ai');
+                return;
+            }
+
+            const table = document.createElement('table');
+            const thead = document.createElement('thead');
+            const tbody = document.createElement('tbody');
+
+            // Create header row
+            const headerRow = document.createElement('tr');
+            const headers = Object.keys(data[0]);
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+
+            // Create body rows
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                headers.forEach(header => {
+                    const cell = document.createElement('td');
+                    cell.textContent = item[header];
+                    row.appendChild(cell);
+                });
+                tbody.appendChild(row);
+            });
+
+            table.appendChild(thead);
+            table.appendChild(tbody);
+            chatWindow.appendChild(table);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
         async function handleConfirmation(isApproved) {
             // Remove confirmation buttons
             document.querySelector('.confirmation-buttons').remove();
@@ -161,7 +222,14 @@
                 addMessage("OK, executing the action...", 'user');
                 const response = await fetch('/execute', { method: 'POST' });
                 const result = await response.json();
-                addMessage(result.payload, 'ai');
+
+                if (result.type === 'list') {
+                    addMessage("Here are the results:", 'ai');
+                    addTable(result.payload);
+                } else {
+                    addMessage(result.payload, 'ai');
+                }
+
             } else {
                 addMessage("Action cancelled.", 'user');
                 // Optionally, inform the AI the action was cancelled

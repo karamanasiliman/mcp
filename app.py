@@ -118,6 +118,28 @@ def execute():
             else:
                 result_message = "Execution of `create_ad_creative` failed. Check console for details."
 
+        elif func_name == "get_campaigns":
+            campaigns = meta_api.get_campaigns(ad_account)
+            if campaigns is not None:
+                # We will return the list directly in the payload for the UI to format
+                return jsonify({"type": "list", "payload": campaigns})
+            else:
+                result_message = "Failed to retrieve campaigns."
+
+        elif func_name == "update_campaign":
+            success = meta_api.update_campaign(**params)
+            if success:
+                result_message = f"Successfully updated campaign {params.get('campaign_id')}."
+            else:
+                result_message = f"Failed to update campaign {params.get('campaign_id')}."
+
+        elif func_name == "delete_campaign":
+            success = meta_api.delete_campaign(**params)
+            if success:
+                result_message = f"Successfully deleted campaign {params.get('campaign_id')}."
+            else:
+                result_message = f"Failed to delete campaign {params.get('campaign_id')}."
+
         else:
             result_message = f"Error: Unknown function '{func_name}'."
 

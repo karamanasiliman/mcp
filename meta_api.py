@@ -54,6 +54,51 @@ def create_campaign(ad_account, name, objective, status='PAUSED', special_ad_cat
         print(f"  - Error Message: {e.api_error_message()}")
         return None
 
+def get_campaigns(ad_account):
+    """
+    Fetches all campaigns in the ad account.
+    """
+    try:
+        fields = [
+            Campaign.Field.id,
+            Campaign.Field.name,
+            Campaign.Field.objective,
+            Campaign.Field.status,
+        ]
+        campaigns = ad_account.get_campaigns(fields=fields)
+
+        # Convert SDK objects to a list of dictionaries for easier handling
+        campaign_list = [dict(c) for c in campaigns]
+
+        return campaign_list
+    except FacebookRequestError as e:
+        print(f"Error getting campaigns: {e}")
+        return None
+
+def update_campaign(campaign_id, params):
+    """
+    Updates a campaign with the given parameters.
+    """
+    try:
+        campaign = Campaign(campaign_id)
+        campaign.remote_update(params=params)
+        return True
+    except FacebookRequestError as e:
+        print(f"Error updating campaign {campaign_id}: {e}")
+        return False
+
+def delete_campaign(campaign_id):
+    """
+    Deletes a campaign.
+    """
+    try:
+        campaign = Campaign(campaign_id)
+        campaign.remote_delete()
+        return True
+    except FacebookRequestError as e:
+        print(f"Error deleting campaign {campaign_id}: {e}")
+        return False
+
 def create_ad(ad_account, ad_set_id, creative_id, name):
     """
     Creates a new ad, linking an ad set and a creative.

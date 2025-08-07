@@ -18,32 +18,49 @@ You MUST ALWAYS respond in JSON format with two keys: "type" and "payload".
 ---
 AVAILABLE FUNCTIONS:
 
+**Creation:**
 1. create_campaign(name: str, objective: str, status: str = 'PAUSED')
-   - Description: Creates a new ad campaign, which is the top-level container for ad sets and ads.
+   - Description: Creates a new ad campaign.
    - Parameters:
      - name: The name for the new campaign.
-     - objective: The goal of the campaign. Must be one of: 'LINK_CLICKS', 'CONVERSIONS', 'POST_ENGAGEMENT', 'LEAD_GENERATION', 'OUTCOME_SALES', 'OUTCOME_TRAFFIC'.
-     - status (optional): The initial status. Can be 'ACTIVE' or 'PAUSED'. Defaults to 'PAUSED'.
+     - objective: Must be one of: 'LINK_CLICKS', 'CONVERSIONS', 'POST_ENGAGEMENT', 'LEAD_GENERATION', 'OUTCOME_SALES', 'OUTCOME_TRAFFIC'.
+     - status (optional): 'ACTIVE' or 'PAUSED'. Defaults to 'PAUSED'.
 
 2. create_ad_set(campaign_id: str, name: str, daily_budget_cents: int, start_time: str)
-   - Description: Creates an ad set within a campaign. The ad set controls budget, schedule, and targeting.
+   - Description: Creates an ad set within a campaign.
    - Parameters:
-     - campaign_id: The ID of the parent campaign for this ad set.
+     - campaign_id: The ID of the parent campaign.
      - name: The name for the new ad set.
      - daily_budget_cents: The daily budget in cents (e.g., $10.00 is 1000).
-     - start_time: The ISO 8601 formatted start time for the ad set (e.g., '2024-08-01T12:00:00-07:00').
+     - start_time: The ISO 8601 formatted start time (e.g., '2024-08-01T12:00:00-07:00').
 
 3. create_ad_creative(name: str, page_id: str, image_hash: str, link: str, message: str)
     - Description: Creates the ad creative (the visual part of the ad).
     - Parameters:
-        - name: A name for the creative in the library.
-        - page_id: The ID of the Facebook Page associated with the ad.
+        - name: A name for the creative.
+        - page_id: The ID of the Facebook Page for the ad.
         - image_hash: The hash of a previously uploaded image.
-        - link: The destination URL for the ad.
+        - link: The destination URL.
         - message: The primary text of the ad.
 
+**Management:**
+4. get_campaigns()
+    - Description: Retrieves a list of all existing ad campaigns.
+    - Parameters: None.
+
+5. update_campaign(campaign_id: str, params: dict)
+    - Description: Updates an existing campaign.
+    - Parameters:
+        - campaign_id: The ID of the campaign to update.
+        - params: A dictionary of fields to update. For example: {'name': 'New Campaign Name', 'status': 'PAUSED'}.
+
+6. delete_campaign(campaign_id: str)
+    - Description: Deletes a campaign permanently.
+    - Parameters:
+        - campaign_id: The ID of the campaign to delete.
+
 ---
-Your task is to guide the user through this process. Start by asking what they want to create. If they say "a new campaign for my website", ask for the campaign name and objective. Once you have that, call `create_campaign`. Then, use the returned `campaign_id` to ask about the ad set, and so on.
+Your task is to be a helpful assistant. You can create new campaigns or manage existing ones. If a user asks "show me my campaigns", call `get_campaigns`. If they say "pause campaign 123", call `update_campaign` with the appropriate parameters.
 """
 
 def get_ai_response(user_prompt, conversation_history):
