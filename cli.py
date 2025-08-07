@@ -1,4 +1,5 @@
 import meta_api
+from facebook_business.adobjects.adaccount import AdAccount
 
 def main():
     """
@@ -25,7 +26,9 @@ def main():
 
         if confirm in ['yes', 'y']:
             print("\nAttempting to create the campaign...")
-            ad_account = meta_api.get_ad_account()
+            config = meta_api.get_config()
+            ad_account_id = config['META_API']['ad_account_id']
+            ad_account = AdAccount(ad_account_id)
             meta_api.create_campaign(
                 ad_account=ad_account,
                 name=name,

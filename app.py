@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for
+from facebook_business.adobjects.adaccount import AdAccount
 import meta_api
 
 app = Flask(__name__)
@@ -20,7 +21,9 @@ def create():
 
     try:
         meta_api.initialize_api()
-        ad_account = meta_api.get_ad_account()
+        config = meta_api.get_config()
+        ad_account_id = config['META_API']['ad_account_id']
+        ad_account = AdAccount(ad_account_id)
 
         # Call the existing function to create the campaign
         campaign = meta_api.create_campaign(

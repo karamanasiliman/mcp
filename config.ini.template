@@ -11,3 +11,6 @@ my_access_token = YOUR_ACCESS_TOKEN
 # Your Ad Account ID
 # Find this in your Ads Manager URL (e.g., act=xxxxxxxxxxxx)
 ad_account_id = act_YOUR_AD_ACCOUNT_ID
+
+# The ID of the Facebook Page you want to advertise from.
+page_id = YOUR_PAGE_ID
