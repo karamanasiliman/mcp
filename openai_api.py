@@ -59,8 +59,22 @@ AVAILABLE FUNCTIONS:
     - Parameters:
         - campaign_id: The ID of the campaign to delete.
 
+**Optimization & Insights:**
+7. get_insights(object_id: str, object_type: str = 'campaign')
+    - Description: Fetches performance insights (spend, clicks, etc.) for a specific campaign, ad_set, or ad.
+    - Parameters:
+        - object_id: The ID of the campaign, ad set, or ad.
+        - object_type (optional): The type of object. Can be 'campaign', 'ad_set', or 'ad'. Defaults to 'campaign'.
+
+8. create_custom_audience_from_emails(name: str, description: str, user_emails: list[str])
+    - Description: Creates a new Custom Audience from a list of user emails.
+    - Parameters:
+        - name: A name for the new audience.
+        - description: A short description for the audience.
+        - user_emails: A Python list of email address strings. You must ask the user to provide these.
+
 ---
-Your task is to be a helpful assistant. You can create new campaigns or manage existing ones. If a user asks "show me my campaigns", call `get_campaigns`. If they say "pause campaign 123", call `update_campaign` with the appropriate parameters.
+Your task is to be a helpful assistant. You can create new campaigns or manage existing ones. If a user asks "how is campaign 123 performing?", call `get_insights`. If they ask "create an audience of my customers", ask for the customer emails and then call `create_custom_audience_from_emails`.
 """
 
 def get_ai_response(user_prompt, conversation_history):

@@ -136,6 +136,9 @@
                 } else if (aiResponse.type === 'list') {
                     addMessage("Here are the campaigns I found:", 'ai');
                     addTable(aiResponse.payload);
+                } else if (aiResponse.type === 'insights') {
+                    addMessage("Here are the performance insights:", 'ai');
+                    addInsights(aiResponse.payload);
                 }
 
             } catch (error) {
@@ -214,6 +217,29 @@
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
+        function addInsights(data) {
+            const table = document.createElement('table');
+            const tbody = document.createElement('tbody');
+
+            for (const [key, value] of Object.entries(data)) {
+                const row = document.createElement('tr');
+                const keyCell = document.createElement('td');
+                keyCell.style.fontWeight = 'bold';
+                keyCell.textContent = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()); // Format key
+
+                const valueCell = document.createElement('td');
+                valueCell.textContent = value;
+
+                row.appendChild(keyCell);
+                row.appendChild(valueCell);
+                tbody.appendChild(row);
+            }
+
+            table.appendChild(tbody);
+            chatWindow.appendChild(table);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
         async function handleConfirmation(isApproved) {
             // Remove confirmation buttons
             document.querySelector('.confirmation-buttons').remove();
@@ -226,6 +252,9 @@
                 if (result.type === 'list') {
                     addMessage("Here are the results:", 'ai');
                     addTable(result.payload);
+                } else if (result.type === 'insights') {
+                    addMessage("Here are the performance insights:", 'ai');
+                    addInsights(result.payload);
                 } else {
                     addMessage(result.payload, 'ai');
                 }

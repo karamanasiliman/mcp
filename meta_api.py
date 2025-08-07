@@ -1,9 +1,11 @@
 import configparser
 from facebook_business.api import FacebookAdsApi
+import hashlib
 from facebook_business.adobjects.adaccount import AdAccount
 from facebook_business.adobjects.campaign import Campaign
 from facebook_business.adobjects.adset import AdSet
 from facebook_business.adobjects.adcreative import AdCreative
+from facebook_business.adobjects.customaudience import CustomAudience
 from facebook_business.adobjects.ad import Ad
 from facebook_business.exceptions import FacebookRequestError
 
@@ -98,6 +100,78 @@ def delete_campaign(campaign_id):
     except FacebookRequestError as e:
         print(f"Error deleting campaign {campaign_id}: {e}")
         return False
+
+def get_insights(object_id, object_type='campaign'):
+    """
+    Fetches insights for a given ad object (campaign, ad set, or ad).
+    """
+    try:
+        fields = [
+            'spend',
+            'impressions',
+            'clicks',
+            'ctr', # Click-Through Rate
+            'cpc', # Cost Per Click
+        ]
+        params = {
+            'date_preset': 'last_7d',
+        }
+
+        if object_type == 'campaign':
+            obj = Campaign(object_id)
+        elif object_type == 'ad_set':
+            obj = AdSet(object_id)
+        elif object_type == 'ad':
+            obj = Ad(object_id)
+        else:
+            raise ValueError(f"Unsupported object_type for insights: {object_type}")
+
+        insights = obj.get_insights(fields=fields, params=params)
+
+        if insights:
+            # Insights usually return a list with one item for the summary
+            return dict(insights[0])
+        else:
+            return {} # Return empty dict if no insights are available
+
+    except FacebookRequestError as e:
+        print(f"Error getting insights for {object_type} {object_id}: {e}")
+        return None
+
+def create_custom_audience_from_emails(ad_account, name, description, user_emails):
+    """
+    Creates a new custom audience from a list of emails.
+    """
+    try:
+        # Step 1: Create the empty audience
+        params = {
+            'name': name,
+            'description': description,
+            'subtype': CustomAudience.Subtype.custom,
+            'customer_file_source': CustomAudience.CustomerFileSource.user_provided_only,
+        }
+        audience = ad_account.create_custom_audience(params=params)
+        print(f"Successfully created empty audience '{name}' with ID: {audience[CustomAudience.Field.id]}")
+
+        # Step 2: Normalize and hash the emails
+        hashed_emails = []
+        for email in user_emails:
+            normalized_email = email.strip().lower()
+            hashed_email = hashlib.sha256(normalized_email.encode('utf-8')).hexdigest()
+            hashed_emails.append(hashed_email)
+
+        # Step 3: Add users to the audience
+        audience.add_users(
+            schema=CustomAudience.Schema.email_sha256,
+            users=hashed_emails
+        )
+        print(f"Successfully added {len(hashed_emails)} users to audience '{name}'.")
+
+        return audience[CustomAudience.Field.id]
+
+    except FacebookRequestError as e:
+        print(f"Error creating custom audience: {e}")
+        return None
 
 def create_ad(ad_account, ad_set_id, creative_id, name):
     """

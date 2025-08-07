@@ -140,6 +140,21 @@ def execute():
             else:
                 result_message = f"Failed to delete campaign {params.get('campaign_id')}."
 
+        elif func_name == "get_insights":
+            insights = meta_api.get_insights(**params)
+            if insights:
+                # Return a special type for the UI to handle
+                return jsonify({"type": "insights", "payload": insights})
+            else:
+                result_message = f"Could not retrieve insights for object {params.get('object_id')}."
+
+        elif func_name == "create_custom_audience_from_emails":
+            audience_id = meta_api.create_custom_audience_from_emails(ad_account=ad_account, **params)
+            if audience_id:
+                result_message = f"Successfully created new custom audience. ID: {audience_id}"
+            else:
+                result_message = "Failed to create custom audience."
+
         else:
             result_message = f"Error: Unknown function '{func_name}'."
 
