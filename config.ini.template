@@ -14,3 +14,7 @@ ad_account_id = act_YOUR_AD_ACCOUNT_ID
 
 # The ID of the Facebook Page you want to advertise from.
 page_id = YOUR_PAGE_ID
+
+[OPENAI_API]
+# Your API key from OpenAI (platform.openai.com)
+api_key = YOUR_OPENAI_API_KEY

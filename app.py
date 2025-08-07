@@ -1,52 +1,41 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, jsonify, session
 from facebook_business.adobjects.adaccount import AdAccount
 import meta_api
+import openai_api
+import os
 
 app = Flask(__name__)
+# A secret key is required for Flask session management
+app.secret_key = os.urandom(24)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # Clear session history when the user loads the page
+    session.clear()
+    return render_template('chat.html')
 
-@app.route('/create', methods=['POST'])
-def create():
-    """
-    Handles the form submission to create a new campaign.
-    """
-    # Get form data
-    name = request.form.get('name')
-    objective = request.form.get('objective')
-    status = request.form.get('status')
-    message = ""
+@app.route('/chat', methods=['POST'])
+def chat():
+    user_message = request.json.get('message')
+    if 'history' not in session:
+        session['history'] = []
 
-    try:
-        meta_api.initialize_api()
-        config = meta_api.get_config()
-        ad_account_id = config['META_API']['ad_account_id']
-        ad_account = AdAccount(ad_account_id)
+    # Add user message to history
+    session['history'].append({"role": "user", "content": user_message})
 
-        # Call the existing function to create the campaign
-        campaign = meta_api.create_campaign(
-            ad_account=ad_account,
-            name=name,
-            objective=objective,
-            status=status
-        )
+    # Get AI response
+    # Note: The real implementation will call the actual OpenAI API
+    ai_response_json = openai_api.get_ai_response(user_message, session['history'])
 
-        if campaign:
-            message = f"Successfully created campaign! ID: {campaign['id']}"
-        else:
-            # The error is already printed to the console by meta_api.py
-            message = "Failed to create campaign. Check the application console for error details."
+    # Add AI response to history
+    # The real implementation will need to parse the JSON and store it correctly
+    session['history'].append({"role": "assistant", "content": ai_response_json})
 
-    except FileNotFoundError:
-        message = "ERROR: config.ini not found. Please copy config.ini.template to config.ini and fill in your credentials."
-    except KeyError as e:
-        message = f"ERROR: Missing configuration key: {e}. Please make sure your config.ini file is complete."
-    except Exception as e:
-        message = f"An unexpected error occurred: {e}"
+    # Ensure the session is saved
+    session.modified = True
 
-    return render_template('result.html', message=message)
+    return jsonify(ai_response_json)
+
 
 if __name__ == '__main__':
     # Using port 8080 for compatibility with more environments.
