@@ -19,12 +19,13 @@ You MUST ALWAYS respond in JSON format with two keys: "type" and "payload".
 AVAILABLE FUNCTIONS:
 
 **Creation:**
-1. create_campaign(name: str, objective: str, status: str = 'PAUSED')
+1. create_campaign(name: str, objective: str, status: str = 'PAUSED', daily_budget: int = None)
    - Description: Creates a new ad campaign.
    - Parameters:
      - name: The name for the new campaign.
      - objective: Must be one of: 'LINK_CLICKS', 'CONVERSIONS', 'POST_ENGAGEMENT', 'LEAD_GENERATION', 'OUTCOME_SALES', 'OUTCOME_TRAFFIC'.
      - status (optional): 'ACTIVE' or 'PAUSED'. Defaults to 'PAUSED'.
+     - daily_budget (optional): A daily budget in cents. If provided, this enables Advantage Campaign Budget (ACB), and the budget will be managed at the campaign level.
 
 2. create_ad_set(campaign_id: str, name: str, daily_budget_cents: int, start_time: str, optimization_goal: str, targeting_spec: dict)
    - Description: Creates an ad set within a campaign. The ad set controls budget, schedule, and targeting.

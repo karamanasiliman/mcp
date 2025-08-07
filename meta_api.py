@@ -34,7 +34,7 @@ def get_config():
     config.read('config.ini')
     return config
 
-def create_campaign(ad_account, name, objective, status='PAUSED', special_ad_categories=None):
+def create_campaign(ad_account, name, objective, status='PAUSED', special_ad_categories=None, daily_budget=None):
     """
     Creates a new ad campaign.
     https://developers.facebook.com/docs/marketing-api/reference/ad-campaign-group#Creating
@@ -49,6 +49,11 @@ def create_campaign(ad_account, name, objective, status='PAUSED', special_ad_cat
             'status': status,
             'special_ad_categories': special_ad_categories,
         }
+        if daily_budget:
+            params['daily_budget'] = daily_budget
+            # When setting a campaign budget, this field is also required
+            params['is_budget_optimization_active'] = True
+
         campaign = ad_account.create_campaign(params=params)
         print(f"Successfully created campaign '{name}'")
         print(f"  - Campaign ID: {campaign[Campaign.Field.id]}")
