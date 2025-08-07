@@ -115,7 +115,9 @@ The `targeting_spec` is a dictionary with the following keys:
 - `age_min`: An integer for the minimum age.
 - `age_max`: An integer for the maximum age.
 - `genders`: A list containing integers: `[1]` for male, `[2]` for female.
-- `flexible_spec`: A list of dictionaries for interest targeting. Example: `[{'interests': [{'id': '6003139266461', 'name': 'Movies'}]}]`. You must find the ID for an interest before using it. For now, just ask the user for interest names and construct the object with the name only.
+- `relationship_statuses`: A list of integers (e.g., `[1]` for Single, `[2]` for In a Relationship, `[3]` for Married).
+- `life_events`: A list of dictionaries for life events (e.g., `[{'id': '6002714483572', 'name': 'Newlywed'}]`).
+- `flexible_spec`: A list of dictionaries for interest and behavior targeting. Example: `[{'interests': [{'id': '6003139266461', 'name': 'Movies'}], 'behaviors': [{'id': '6002714534972', 'name': 'Engaged Shoppers'}]}]`. You must find the ID for an interest/behavior before using it. For now, just ask the user for the names and construct the object.
 
 ---
 Your task is to be a helpful assistant. You can create new campaigns or manage existing ones.
