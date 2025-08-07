@@ -1,0 +1,13 @@
+[META_API]
+# Your Meta App credentials
+# You can get these from the Meta Developer Dashboard: https://developers.facebook.com/apps/
+my_app_id = YOUR_APP_ID
+my_app_secret = YOUR_APP_SECRET
+
+# A long-lived user access token with the 'ads_management' permission
+# See README.md for instructions on how to generate this.
+my_access_token = YOUR_ACCESS_TOKEN
+
+# Your Ad Account ID
+# Find this in your Ads Manager URL (e.g., act=xxxxxxxxxxxx)
+ad_account_id = act_YOUR_AD_ACCOUNT_ID
