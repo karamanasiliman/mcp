@@ -106,11 +106,13 @@
                     body: JSON.stringify({ message: userMessage }),
                 });
                 const aiResponseJson = await response.json();
-                const aiResponse = JSON.parse(aiResponseJson); // The response is a JSON string
+                const aiResponse = aiResponseJson;
 
-                // For now, just display the raw payload.
-                // Later, this will handle different response types (message vs. function_call).
-                addMessage(aiResponse.payload, 'ai');
+                if (aiResponse.type === 'message') {
+                    addMessage(aiResponse.payload, 'ai');
+                } else if (aiResponse.type === 'confirmation') {
+                    addConfirmationMessage(aiResponse.payload);
+                }
 
             } catch (error) {
                 console.error('Error:', error);
@@ -121,9 +123,55 @@
         function addMessage(text, sender) {
             const messageElement = document.createElement('div');
             messageElement.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
-            messageElement.textContent = text;
+            // Use innerHTML to render newlines from the AI's formatted string
+            messageElement.innerHTML = text.replace(/\n/g, '<br>');
             chatWindow.appendChild(messageElement);
             chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function addConfirmationMessage(text) {
+            addMessage(text, 'ai');
+
+            const confirmationButtons = document.createElement('div');
+            confirmationButtons.classList.add('confirmation-buttons');
+
+            const yesButton = document.createElement('button');
+            yesButton.textContent = 'Yes, proceed';
+            yesButton.onclick = () => handleConfirmation(true);
+
+            const noButton = document.createElement('button');
+            noButton.textContent = 'No, cancel';
+            noButton.onclick = () => handleConfirmation(false);
+
+            confirmationButtons.appendChild(yesButton);
+            confirmationButtons.appendChild(noButton);
+            chatWindow.appendChild(confirmationButtons);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            // Disable main input
+            messageInput.disabled = true;
+            document.getElementById('send-button').disabled = true;
+        }
+
+        async function handleConfirmation(isApproved) {
+            // Remove confirmation buttons
+            document.querySelector('.confirmation-buttons').remove();
+
+            if (isApproved) {
+                addMessage("OK, executing the action...", 'user');
+                const response = await fetch('/execute', { method: 'POST' });
+                const result = await response.json();
+                addMessage(result.payload, 'ai');
+            } else {
+                addMessage("Action cancelled.", 'user');
+                // Optionally, inform the AI the action was cancelled
+                // await fetch('/chat', { ... body: { message: "User cancelled the action." } ... });
+            }
+
+            // Re-enable main input
+            messageInput.disabled = false;
+            document.getElementById('send-button').disabled = false;
+            messageInput.focus();
         }
     </script>
 </body>

@@ -51,22 +51,32 @@ def get_ai_response(user_prompt, conversation_history):
     Gets a response from the OpenAI API.
     """
     config = meta_api.get_config()
-    openai.api_key = config['OPENAI_API']['api_key']
+    try:
+        client = openai.OpenAI(api_key=config['OPENAI_API']['api_key'])
+    except KeyError:
+        return json.dumps({
+            "type": "message",
+            "payload": "ERROR: OpenAI API key not found in config.ini. Please add it under the [OPENAI_API] section."
+        })
 
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT}
     ]
-    messages.extend(conversation_history)
+    # Ensure history is not too long (optional, good practice)
+    messages.extend(conversation_history[-10:])
     messages.append({"role": "user", "content": user_prompt})
 
-    # This is a placeholder for the actual API call.
-    # The real implementation will make a request to OpenAI's API.
-    print("Sending prompt to AI (mock):", user_prompt)
-
-    # Mock response for now
-    mock_response = {
-      "type": "message",
-      "payload": "This is a mocked response from the AI. The real implementation is pending."
-    }
-
-    return json.dumps(mock_response)
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=messages,
+            response_format={"type": "json_object"} # Enforce JSON output
+        )
+        ai_response_content = response.choices[0].message.content
+        return ai_response_content
+    except Exception as e:
+        print(f"Error calling OpenAI API: {e}")
+        return json.dumps({
+            "type": "message",
+            "payload": f"Sorry, I encountered an error trying to contact the AI. Please check the console. Error: {e}"
+        })
