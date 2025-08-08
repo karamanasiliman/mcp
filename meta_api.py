@@ -11,6 +11,7 @@ from facebook_business.adobjects.adimage import AdImage
 from facebook_business.adobjects.advideo import AdVideo
 from facebook_business.adobjects.page import Page
 from facebook_business.adobjects.adpreview import AdPreview
+from facebook_business.adobjects.adrule import AdRule
 from facebook_business.adobjects.ad import Ad
 from facebook_business.exceptions import FacebookRequestError
 
@@ -331,6 +332,28 @@ def create_dynamic_creative(ad_account, name, page_id, image_hashes=None, titles
 
     except FacebookRequestError as e:
         print(f"Error creating dynamic creative: {e}")
+        return None
+
+def create_ad_rule(ad_account, name, evaluation_spec, execution_spec, schedule_spec=None):
+    """
+    Creates a new automated ad rule.
+    """
+    try:
+        params = {
+            'name': name,
+            'evaluation_spec': json.dumps(evaluation_spec),
+            'execution_spec': json.dumps(execution_spec),
+        }
+        if schedule_spec:
+            params['schedule_spec'] = json.dumps(schedule_spec)
+
+        rule = ad_account.create_ad_rule(params=params)
+        print(f"Successfully created ad rule '{name}'")
+        print(f"  - Ad Rule ID: {rule[AdRule.Field.id]}")
+        return rule
+
+    except FacebookRequestError as e:
+        print(f"Error creating ad rule: {e}")
         return None
 
 def get_ad_preview(creative_id, ad_format='DESKTOP_FEED_STANDARD'):

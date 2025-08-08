@@ -159,6 +159,13 @@ def execute():
             else:
                 result_message = "Failed to create custom audience."
 
+        elif func_name == "create_ad_rule":
+            rule = meta_api.create_ad_rule(ad_account=ad_account, **params)
+            if rule:
+                result_message = f"Successfully created new ad rule. ID: {rule['id']}"
+            else:
+                result_message = "Failed to create ad rule."
+
         elif func_name == "create_lead_form":
             params['page_id'] = config['META_API']['page_id']
             form_id = meta_api.create_lead_form(**params)
